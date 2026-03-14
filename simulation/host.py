@@ -3,7 +3,9 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from utils.ip_verification_module import verify_mac_address, verify_ipv4_address, verify_ipv6_address, verify_if_is_in_the_same_lan
+from utils.ip_verification_module import verify_mac_address, verify_ipv4_address, verify_ipv6_address
+from utils.lan_verification_module import verify_if_is_in_the_same_lan
+from simulation.packet import Packet
 
 class Host:
 	def __init__(self, name: str, mac_address: str, ipv4_address: str, ipv6_address: str, default_gateway: str):
@@ -23,16 +25,17 @@ class Host:
 		if ipv4_validation["success"] == False:
 			raise ValueError(ipv4_validation["error"])
 			
-		default_gateway_validation = verify_ipv4_address(ipv4_address)
+		default_gateway_validation = verify_ipv4_address(default_gateway)
 		if default_gateway_validation["success"] == False:
 			raise ValueError(default_gateway["error"])
-		elif default_gateway_validation == ipv4_address:
+		elif default_gateway == ipv4_address:
 			raise ValueError("Il default gateway deve essere diverso dall'indirizzo ip del dispositivo.")
 					
 		self.name = name
 		self.mac_address = mac_address
 		self.ipv4_address = ipv4_address
 		self.ipv6_address = ipv6_address
+		self.default_gateway = default_gateway
 		
 		self.subnet_mask = self.calculate_subnet_mask(self.ipv4_address)
 		self.arp_table = {}
@@ -55,7 +58,7 @@ class Host:
 			
 			self.arp_table[name] = {"Ipv4": ipv4_address, "Mac": mac_address}
 		except AttributeError as e:
-			raise ValueError("Dispositivo non valido. Manca " + e)
+			raise ValueError(f"Dispositivo non valido. Manca l'attributo: {e}")
 			
 	def populate_routing_table(self, device):
 		try:
@@ -68,7 +71,7 @@ class Host:
 			else:				
 				self.routing_table[name] = {"Destination": ipv4_address, "Netmask": subnet_mask, "Gateway": ipv4_address}
 		except AttributeError as e:
-			raise ValueError(f"Impossibile calcolare il routing. Manca l'attributo: {e}")				
+			raise ValueError(f"Impossibile calcolare il routing. Manca l'attributo: {e}")
 			
 # --- CODICE DI PROVA ---
 if __name__ == "__main__":
