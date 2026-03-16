@@ -4,6 +4,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils.ip_verification_module import verify_mac_address, verify_ipv4_address
+from simulation.ethernet_frame import EthernetFrame
 
 class Switch:
 	def __init__(self, name: str, ipv4_address: str, mac_address: str):
@@ -21,15 +22,19 @@ class Switch:
 		self.name = name
 		self.ipv4_address = ipv4_address
 		self.mac_address = mac_address
-		self.mac_table = []
+		self.mac_table = {}
 	
-	def verify_if_in_mac_table(self, mac_address_to_verify: str):
-		if mac_address_to_verify in self.mac_table:
-			return True
-		else return False
-	
-	def add_to_mac_table(self, mac_address_to_add):
-		if mac_address_to_add not in self.mac_table:
-			self.mac_table.append(mac_address_to_add)
-	
-	
+	def receive_frame(self, frame: EthernetFrame):
+		if not isinstance(frame, EthernetFrame):
+			raise ValueError("IL pacchetto non può essere inoltrato correttamente")
+		
+		self.mac_table[frame.source_mac_address] = frame.source_host
+		
+		if frame.destination_mac_address in self.mac_table.keys():
+			self.mac_table[frame.destination_mac_address].receive(frame)
+		else:
+			for mac, host in self.mac_table:
+				if host != frame.source_host:
+					host.receive(frame)
+		
+			

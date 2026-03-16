@@ -5,7 +5,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils.ip_verification_module import verify_mac_address, verify_ipv4_address, verify_ipv6_address
 from utils.lan_verification_module import verify_if_is_in_the_same_lan
-from simulation.packet import Packet
+from simulation.packet import Packet, ArpRequest
+from simulation.ethernet_frame import EthernetFrame
 
 class Host:
 	def __init__(self, name: str, mac_address: str, ipv4_address: str, ipv6_address: str, default_gateway: str):
@@ -36,6 +37,7 @@ class Host:
 		self.ipv4_address = ipv4_address
 		self.ipv6_address = ipv6_address
 		self.default_gateway = default_gateway
+		self.connected_switch = None
 		
 		self.subnet_mask = self.calculate_subnet_mask(self.ipv4_address)
 		self.arp_table = {}
@@ -52,26 +54,50 @@ class Host:
 			
 	def populate_arp_table(self, device):
 		try:
-			name = device.name
 			ipv4_address = device.ipv4_address
 			mac_address = device.mac_address
 			
-			self.arp_table[name] = {"Ipv4": ipv4_address, "Mac": mac_address}
+			self.arp_table[ipv4_address] = mac_address 
 		except AttributeError as e:
 			raise ValueError(f"Dispositivo non valido. Manca l'attributo: {e}")
 			
 	def populate_routing_table(self, device):
 		try:
-			name = device.name
 			ipv4_address = device.ipv4_address
 			subnet_mask = device.subnet_mask
 			
 			if verify_if_is_in_the_same_lan(self.ipv4_address, self.subnet_mask, ipv4_address):
-				self.routing_table[name] = {"Destination": ipv4_address, "Netmask": subnet_mask, "Gateway": "0.0.0.0"}
+				self.routing_table[ipv4_address] = {"Destination": ipv4_address, "Netmask": subnet_mask, "Gateway": "0.0.0.0"}
 			else:				
-				self.routing_table[name] = {"Destination": ipv4_address, "Netmask": subnet_mask, "Gateway": ipv4_address}
+				self.routing_table[ipv4_address] = {"Destination": ipv4_address, "Netmask": subnet_mask, "Gateway": self.default_gateway}
 		except AttributeError as e:
 			raise ValueError(f"Impossibile calcolare il routing. Manca l'attributo: {e}")
+			
+			
+	def create_frame(self, content_payload: Packet, destination_mac_address="FF:FF:FF:FF:FF:FF"):
+		return EthernetFrame(self, self.mac_address, destination_mac_address, content_payload)
+	
+	def send_packet(self, destination_ipv4: str, payload: Packet, protocol: str):
+		if not isinstance(protocol, str):
+			raise ValueError("Protocollo non valido")
+			
+		if protocol.lower() not in ["udp", "tcp"]:
+			raise ValueError("Protocollo non valido")
+			
+		if destination_ipv4 not in self.arp_table.keys():
+			arp_request = ArpRequest(self.ipv4_address, self.mac_address, destination_ipv4)
+			if self.connected_switch is None:
+				raise ValueError("impossibile inoltrare la richiesta")
+			else:
+				self.connected_switch.receive_frame(self.create_frame(arp_request))
+		
+			
+		
+			
+			
+			
+			
+			
 			
 # --- CODICE DI PROVA ---
 if __name__ == "__main__":
