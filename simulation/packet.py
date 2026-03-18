@@ -23,9 +23,12 @@ class Packet:
 		self.protocol = None
 		self.content_payload = content_payload
 		self.received = False
+		
+	def __str__(self):
+		return f"Source ipv4: {self.source_ip}\nDestination ipv4: {self.destination_ip}\nProtocol: {self.protocol}\nContent: {self.content_payload}"
 
 class TCPPacket(Packet):
-	def __init__(self, source_ip: str, destination_ip: str, content_payload: str, sequence_number=0, ackowledgment_number=0, syn=False, acknowledgement=False):
+	def __init__(self, source_ip: str, destination_ip: str, content_payload: str, sequence_number=0, acknowledgment_number=0, syn=False, acknowledgement=False):
 		super().__init__(source_ip, destination_ip, content_payload)
 		
 		self.sequence_number = sequence_number
@@ -33,6 +36,9 @@ class TCPPacket(Packet):
 		self.acknowledgement = acknowledgement
 		self.syn = syn
 		self.protocol = "TCP"
+		
+	def __str__(self):
+		return f"Source ipv4: {self.source_ip}\nDestination ipv4: {self.destination_ip}\nProtocol: {self.protocol}\nContent: {self.content_payload}\nSequence number: {self.sequence_number}"
 		
 class UDPPacket(Packet):
 	def __init__(self, source_ip: str, destination_ip: str, content_payload: str):
@@ -49,6 +55,10 @@ class ArpRequest(Packet):
 			raise ValueError(mac_address_validation["error"])
 		
 		self.source_mac = source_mac
+		self.protocol = "ARP"
+		
+	def __str__(self):
+		return f"Source Mac: {self.source_mac}\nSource ipv4: {self.source_ip}\nDestination ipv4: {self.destination_ip}\nProtocol: {self.protocol}\nContent: {self.content_payload}"
 
 
 

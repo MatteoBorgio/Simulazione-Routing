@@ -1,6 +1,6 @@
 from utils.ip_verification_module import verify_ipv4_address
 
-def verify_if_is_in_the_same_lan(ipv4_controller_address: str, controller_subnet_mask: str, ipv4_address_to_verify: str):
+def verify_if_is_in_the_same_lan(ipv4_controller_address: str, controller_subnet_mask: str, ipv4_address_to_verify: str) -> bool:
 	ipv4_validation = verify_ipv4_address(ipv4_controller_address)
 	if ipv4_validation["success"] == False:
 		raise ValueError(ipv4_validation["error"])

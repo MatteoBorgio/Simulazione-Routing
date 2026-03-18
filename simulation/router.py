@@ -16,7 +16,7 @@ class Router:
 		
 		private_ipv4_validation = verify_ipv4_address(private_ipv4_address)
 		if private_ipv4_validation["success"] == False:
-			raise ValueError(ipv4_validation["error"])
+			raise ValueError(private_ipv4_validation["error"])
 			
 		
 		public_ipv4_validation = verify_ipv4_address(public_ipv4_address)
@@ -27,5 +27,8 @@ class Router:
 		self.public_ipv4_address = public_ipv4_address
 		self.private_ipv4_address = private_ipv4_address
 		self.mac_address = mac_address
+		
+	def __str__(self):
+		return f"Router: {self.name}\nMac: {self.mac_address}\nIpv4: {self.public_ipv4_address}\nPrivate ipv4: {self.private_ipv4_address}"
 		
 		

@@ -23,8 +23,12 @@ class Switch:
 		self.ipv4_address = ipv4_address
 		self.mac_address = mac_address
 		self.mac_table = {}
+		self.connected_devices = []
+		
+	def connect_device(device: "Host") -> None:
+		self.connect_devices.append(device)
 	
-	def receive_frame(self, frame: EthernetFrame):
+	def receive_frame(self, frame: EthernetFrame) -> None:
 		if not isinstance(frame, EthernetFrame):
 			raise ValueError("IL pacchetto non può essere inoltrato correttamente")
 		
@@ -33,8 +37,11 @@ class Switch:
 		if frame.destination_mac_address in self.mac_table.keys():
 			self.mac_table[frame.destination_mac_address].receive(frame)
 		else:
-			for mac, host in self.mac_table:
+			for host in self.connected_devices:
 				if host != frame.source_host:
 					host.receive(frame)
+				
+	def __str__(self):
+		return f"Switch: {self.name}\nMac: {self.mac_address}\nIpv4: {self.ipv4_address}"
 		
 			
