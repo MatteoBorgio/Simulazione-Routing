@@ -38,6 +38,7 @@ class Host:
 		self.ipv6_address = ipv6_address
 		self.default_gateway = default_gateway
 		self.connected_switch = None
+		self.packet_buffer = []
 		
 		self.subnet_mask = self.calculate_subnet_mask(self.ipv4_address)
 		self.arp_table = {}
@@ -93,8 +94,35 @@ class Host:
 				arp_reply = ArpRequest(self.ipv4_address, self.mac_address, payload.source_ip, "ARP IS AT")
 				reply_frame = self.create_frame(arp_reply, payload.source_mac)
 				self.connected_switch.receive_frame(reply_frame)
-				
+				return
 			
+			if payload.content_payload == "ARP IS AT": 
+				self.arp_table[payload.source_ip] = payload.source_mac
+				
+				packet_to_send = []
+				packet_not_to_send = []
+				
+				for target, packet in self.packet_buffer:
+					if target == payload.source_ip:
+						packet_to_send.append((target, packet))
+					else:
+						packet_not_to_send.append((target, packet))
+						
+				self.packet_buffer = packet_not_to_send
+				
+				for target, packet in packet_to_send:
+					self.connected_switch.receive_frame(EthernetFrame(self, payload.source_mac, packet))
+				
+				return
+				
+			if payload.protocol.lower() == "udp":
+				print(f"Ricevuto: {payload}")
+				return
+			
+			if payload.protocol.lower() == "tcp":
+				pass
+		
+						
 		except AttributeError as e:
 			raise ValueError(f"Impossibile calcolare il routing. Manca l'attributo: {e}")
 	
@@ -117,9 +145,11 @@ class Host:
 			frame = self.create_frame(payload, destination_mac_address)
 			self.connected_switch.receive_frame(frame)
 		else:
+			self.packet_buffer.append((target_ip, payload))
 			arp_request = ArpRequest(self.ipv4_address, self.mac_address, target_ip, "ARP WHO HAS")
 			broadcast_frame = self.create_frame(arp_request, "FF:FF:FF:FF:FF:FF")
 			self.connected_switch.receive_frame(broadcast_frame)
+			return
 			
 		# TCP and UDP packets sending procedure not implemented
 	
