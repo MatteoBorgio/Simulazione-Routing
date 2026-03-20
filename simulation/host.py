@@ -76,6 +76,27 @@ class Host:
 			
 	def create_frame(self, content_payload: Packet, destination_mac_address="FF:FF:FF:FF:FF:FF") -> EthernetFrame:
 		return EthernetFrame(self, destination_mac_address, content_payload)
+		
+	def receive(self, frame: EthernetFrame) -> None:
+		try:
+			if frame.destination_mac_address != self.mac_address and frame.destination_mac_address != "FF:FF:FF:FF:FF:FF":
+				return
+				
+			payload = frame.content_payload
+			
+			if payload.destination_ip != self.ipv4_address:
+				return
+				
+			self.arp_table[payload.source_ip] = payload.source_mac
+			
+			if payload.content_payload == "ARP WHO HAS":
+				arp_reply = ArpRequest(self.ipv4_address, self.mac_address, payload.source_ip, "ARP IS AT")
+				reply_frame = self.create_frame(arp_reply, payload.source_mac)
+				self.connected_switch.receive_frame(reply_frame)
+				
+			
+		except AttributeError as e:
+			raise ValueError(f"Impossibile calcolare il routing. Manca l'attributo: {e}")
 	
 	def send_packet(self, destination_ipv4: str, payload: Packet, protocol: str) -> None:
 		if not isinstance(protocol, str):
@@ -96,7 +117,7 @@ class Host:
 			frame = self.create_frame(payload, destination_mac_address)
 			self.connected_switch.receive_frame(frame)
 		else:
-			arp_request = ArpRequest(self.ipv4_address, self.mac_address, destination_ipv4)
+			arp_request = ArpRequest(self.ipv4_address, self.mac_address, target_ip, "ARP WHO HAS")
 			broadcast_frame = self.create_frame(arp_request, "FF:FF:FF:FF:FF:FF")
 			self.connected_switch.receive_frame(broadcast_frame)
 			

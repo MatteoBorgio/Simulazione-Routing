@@ -47,8 +47,8 @@ class UDPPacket(Packet):
 		self.protocol = "UDP"
 
 class ArpRequest(Packet):
-	def __init__(self, source_ip: str, source_mac: str, destination_ip: str):
-		super().__init__(source_ip, destination_ip, "Arp Request")
+	def __init__(self, source_ip: str, source_mac: str, destination_ip: str, content_payload: str):
+		super().__init__(source_ip, destination_ip, content_payload)
 		
 		mac_address_validation = verify_mac_address(source_mac)
 		if mac_address_validation["success"] == False:
