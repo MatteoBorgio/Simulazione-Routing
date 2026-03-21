@@ -28,10 +28,10 @@ class Packet:
 		return f"Source ipv4: {self.source_ip}\nDestination ipv4: {self.destination_ip}\nProtocol: {self.protocol}\nContent: {self.content_payload}"
 
 class TCPPacket(Packet):
-	def __init__(self, source_ip: str, destination_ip: str, content_payload: str, source_port: int, destination_port: str sequence_number=0, acknowledgement_number=0, syn=False, acknowledgement=False):
+	def __init__(self, source_ip: str, destination_ip: str, content_payload: str, source_port: int, destination_port: int, sequence_number=0, acknowledgement_number=0, syn=False, acknowledgement=False):
 		super().__init__(source_ip, destination_ip, content_payload)
 		
-		if not isinstance(source_port) or not isinstance(destination_port):
+		if not isinstance(source_port, int) or not isinstance(destination_port, int):
 			raise ValueError("La porta deve essere un intero")
 			
 		self.sequence_number = sequence_number

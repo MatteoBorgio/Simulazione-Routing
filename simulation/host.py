@@ -121,7 +121,6 @@ class Host:
 			
 			if payload.protocol.lower() == "tcp":
 				pass
-		
 						
 		except AttributeError as e:
 			raise ValueError(f"Impossibile calcolare il routing. Manca l'attributo: {e}")
@@ -150,8 +149,6 @@ class Host:
 			broadcast_frame = self.create_frame(arp_request, "FF:FF:FF:FF:FF:FF")
 			self.connected_switch.receive_frame(broadcast_frame)
 			return
-			
-		# TCP and UDP packets sending procedure not implemented
 	
 	def __str__(self):
 		return f"Host: {self.name}\nMac: {self.mac_address}\nIpv4: {self.ipv4_address}\nIpv6: {self.ipv6_address}\nGateway: {self.default_gateway}\nSubnet: {self.subnet_mask}"
